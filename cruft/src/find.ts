@@ -1,9 +1,9 @@
 import { findAll } from './findAll';
 import { AbstractItem, EnhancedItem, FindConfiguration, PrototypicalItem } from './index';
 
-export const find = <T extends AbstractItem>({ client, tableName, limit }: FindConfiguration) =>
+export const find = <T extends AbstractItem>({ client, tableDescription, limit }: FindConfiguration) =>
   async (fields: PrototypicalItem<T>): Promise<EnhancedItem<T>> => {
-    const items = await findAll<T>({ client, tableName, limit })(fields);
+    const items = await findAll<T>({ client, tableDescription, limit })(fields);
 
     const firstResult = await items.next();
 

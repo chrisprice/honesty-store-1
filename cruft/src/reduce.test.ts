@@ -2,7 +2,7 @@ import { createTable, cruftForTable, deleteTable, nextId } from './__tests__/aws
 
 const suiteName = 'reduce';
 
-describe.only(suiteName, () => {
+describe(suiteName, () => {
 
   beforeAll(createTable(suiteName));
   afterAll(deleteTable(suiteName));
@@ -80,7 +80,7 @@ describe.only(suiteName, () => {
     };
     await cruft.create({ id: aggregateId, version: 0 });
     const reduce = cruft.reduce(_ => aggregateId, ({ id }) => id, (aggregate, _, emit) => {
-      emit({ id: 'a', version: 0 });
+      emit({ id: 'a' });
       return aggregate;
     });
 
@@ -102,8 +102,8 @@ describe.only(suiteName, () => {
     };
     await cruft.create({ id: aggregateId, version: 0 });
     const reduce = cruft.reduce(_ => aggregateId, ({ id }) => id, (aggregate, _, emit) => {
-      emit({ id: 'a', version: 0 });
-      emit({ id: 'b', version: 0 });
+      emit({ id: 'a' });
+      emit({ id: 'b' });
       return aggregate;
     });
 

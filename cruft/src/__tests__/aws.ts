@@ -1,6 +1,6 @@
 import { DynamoDB } from 'aws-sdk';
 import { v4 as uuid } from 'uuid';
-import index, { Cruft } from '../index';
+import index, { Cruft, HasId } from '../index';
 
 export interface Foo {
   id: string;
@@ -19,7 +19,7 @@ const db = new DynamoDB(<{ apiVersion: string, endpoint: string }>{
 });
 
 export const cruftForTable = (tableName): Cruft<Foo> =>
-  index<Foo>({
+  index<Foo, HasId, HasId>({
     endpoint,
     region,
     tableName: tablePrefix + tableName,

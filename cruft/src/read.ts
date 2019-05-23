@@ -1,7 +1,13 @@
 import { AbstractItem, Configuration, EnhancedItem } from './index';
 
-export const read = <T extends AbstractItem>({ client, tableName, consistent = false }: Configuration & { consistent?: boolean }) =>
+export const read = <T extends AbstractItem>({ client, tableDescription, consistent = false }: Configuration & { consistent?: boolean }) =>
   async (id: string): Promise<EnhancedItem<T>> => {
+    const { TableName: tableName } = await tableDescription;
+
+    if (tableName == null) {
+      throw new Error();
+    }
+
     const response = await client.get({
       TableName: tableName,
       Key: {

@@ -11,9 +11,15 @@ const createFilterExpression = (fieldNames, fields) =>
     {}
   );
 
-export const findAll = <T extends AbstractItem>({ client, tableName, limit }: FindConfiguration) =>
+export const findAll = <T extends AbstractItem>({ client, tableDescription, limit }: FindConfiguration) =>
   async function*(fields: PrototypicalItem<T>): AsyncIterableIterator<EnhancedItem<T>> {
     assertHasValidDynamoDBFieldNames(fields);
+
+    const { TableName: tableName } = await tableDescription;
+
+    if (tableName == null) {
+      throw new Error();
+    }
 
     if ('id' in fields) {
       throw new Error('Use read rather than find if you know the id');

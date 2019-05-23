@@ -3,7 +3,7 @@ import { createTable, cruftForTable, deleteTable, nextId } from './__tests__/aws
 
 const suiteName = 'findAll';
 
-describe.only(suiteName, () => {
+describe(suiteName, () => {
 
   beforeAll(createTable(suiteName));
   afterAll(deleteTable(suiteName));

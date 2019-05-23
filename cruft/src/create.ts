@@ -1,7 +1,7 @@
 import { assertHasValidDynamoDBFieldNames } from './assertHasValidDynamoDBFieldNames';
 import { AbstractItem, Configuration, EnhancedItem, NewItem } from './index';
 
-export const create = <T extends AbstractItem>({ client, tableName }: Configuration) =>
+export const create = <T extends AbstractItem>({ client, tableDescription }: Configuration) =>
   async (item: NewItem<T>): Promise<EnhancedItem<T>> => {
     assertHasValidDynamoDBFieldNames(item);
 
@@ -13,6 +13,12 @@ export const create = <T extends AbstractItem>({ client, tableName }: Configurat
       created: now,
       modified: now
     });
+
+    const { TableName: tableName } = await tableDescription;
+    console.log(await tableDescription);
+    if (tableName == null) {
+      throw new Error();
+    }
 
     try {
       await client.put({

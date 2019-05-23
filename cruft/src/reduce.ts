@@ -1,5 +1,5 @@
 import { create } from './create';
-import { AbstractItem, Configuration, EnhancedItem, EventItem, NewItem } from './index';
+import { AbstractItem, Configuration, EnhancedItem, EventItem, NewItem, HasId } from './index';
 import { read } from './read';
 import { update } from './update';
 
@@ -8,9 +8,9 @@ type MaybePromise<T> = Promise<T> | T;
 
 export const reduce = <
   Aggregate extends AbstractItem,
-  ReceivedEvent extends AbstractItem,
-  EmittedEvent extends AbstractItem
-  >({ client, tableName }: Configuration) => {
+  ReceivedEvent extends HasId,
+  EmittedEvent extends HasId
+  >({ client, tableDescription }: Configuration) => {
 
   const getAggregate = async (
     aggregateIdSelector: (event: ReceivedEvent) => string,
@@ -28,7 +28,7 @@ export const reduce = <
     }
 
     try {
-      return await read<Aggregate>({ client, tableName, consistent: false })(id);
+      return await read<Aggregate>({ client, tableDescription, consistent: false })(id);
     } catch (e) {
       if (aggregateFactory == null || e.message !== `Key not found ${id}`) {
         throw e;
@@ -39,7 +39,7 @@ export const reduce = <
     if (newAggregate.id !== id) {
       throw new Error(`New aggregate id ${newAggregate.id} does not match selected id ${id}`);
     }
-    return await create<Aggregate>({ client, tableName })(newAggregate);
+    return await create<Aggregate>({ client, tableDescription })(newAggregate);
   };
 
   return (
@@ -53,6 +53,12 @@ export const reduce = <
     aggregateFactory?: (event: ReceivedEvent) => NewItem<Aggregate>
   ) =>
     async (event: ReceivedEvent, aggregate?: EnhancedItem<Aggregate>): Promise<EnhancedItem<Aggregate>> => {
+
+      const { TableName: tableName } = await tableDescription;
+
+      if (tableName == null) {
+        throw new Error();
+      }
 
       const innerAggregate = await getAggregate(
         aggregateIdSelector,
@@ -75,7 +81,7 @@ export const reduce = <
       let archivedEvent: EventItem | null = null;
 
       try {
-        archivedEvent = await read<EventItem & { version: 0 }>({ client, tableName, consistent: true })(eventId);
+        archivedEvent = await read<EventItem & { version: 0 }>({ client, tableDescription, consistent: true })(eventId);
       } catch (e) {
         if (e.message !== `Key not found ${eventId}`) {
           throw e;
@@ -88,7 +94,7 @@ export const reduce = <
 
       if (previousLastReceived != null) {
         try {
-          await create<EventItem & { version: 0 }>({ client, tableName })(<EventItem & { version: 0 }>previousLastReceived);
+          await create<EventItem & { version: 0 }>({ client, tableDescription })(<EventItem & { version: 0 }>previousLastReceived);
         } catch (e) {
           if (e.message !== `Item already exists ${previousLastReceived.id}`) {
             throw e;
@@ -98,7 +104,7 @@ export const reduce = <
 
       if (previousLastEmitted != null) {
         try {
-          await create<EventItem & { version: 0 }>({ client, tableName })(<EventItem & { version: 0 }>previousLastEmitted);
+          await create<EventItem & { version: 0 }>({ client, tableDescription })(<EventItem & { version: 0 }>previousLastEmitted);
         } catch (e) {
           if (e.message !== `Item already exists ${previousLastEmitted.id}`) {
             throw e;
@@ -137,6 +143,6 @@ export const reduce = <
         }
       );
 
-      return await update<Aggregate>({ client, tableName })(updatedAggregate);
+      return await update<Aggregate>({ client, tableDescription })(updatedAggregate);
     };
 };

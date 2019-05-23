@@ -79,8 +79,8 @@ export interface FindConfiguration extends Configuration {
 
 export interface Cruft<
   T extends AbstractItem,
-  ReceivedEvent extends AbstractItem = AbstractItem,
-  EmittedEvent extends AbstractItem = AbstractItem
+  ReceivedEvent extends HasId = HasId,
+  EmittedEvent extends HasId = HasId
   > {
   create(item: NewItem<T>): Promise<EnhancedItem<T>>;
   read(id: string): Promise<EnhancedItem<T>>;
@@ -99,8 +99,8 @@ export interface Cruft<
 
 export default <
   Aggregate extends AbstractItem,
-  ReceivedEvent extends AbstractItem,
-  EmittedEvent extends AbstractItem
+  ReceivedEvent extends HasId,
+  EmittedEvent extends HasId
   >({
     endpoint = process.env.AWS_DYNAMODB_ENDPOINT,
     region = process.env.AWS_REGION,
@@ -118,12 +118,12 @@ export default <
     const { Table: tableDescription } = await api.describeTable({
       TableName: tableName
     }).promise();
-
+    console.log(tableName);
     if (tableDescription == null) {
       throw new Error(`Table ${tableName} not found`);
     }
 
-    return tableDescription;
+    return { TableName: tableName };
   };
 
   const client = new DynamoDB.DocumentClient(<DocumentClientOptions>{

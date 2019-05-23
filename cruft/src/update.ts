@@ -1,9 +1,15 @@
 import { assertHasValidDynamoDBFieldNames } from './assertHasValidDynamoDBFieldNames';
 import { AbstractItem, Configuration, EnhancedItem } from './index';
 
-export const update = <T extends AbstractItem>({ client, tableName }: Configuration) =>
+export const update = <T extends AbstractItem>({ client, tableDescription }: Configuration) =>
   async (item: EnhancedItem<T>): Promise<EnhancedItem<T>> => {
     assertHasValidDynamoDBFieldNames(item);
+
+    const { TableName: tableName } = await tableDescription;
+
+    if (tableName == null) {
+      throw new Error();
+    }
 
     // hack - can't use object rest/spread with types yet - Microsoft/TypeScript/issues/10727
     const itemWithMetadata = Object.assign({}, item, {

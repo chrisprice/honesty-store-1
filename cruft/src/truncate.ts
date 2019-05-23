@@ -1,7 +1,13 @@
 import { AbstractItem, Configuration } from './index';
 
-export const truncate = ({ client, tableName }: Configuration) =>
+export const truncate = ({ client, tableDescription }: Configuration) =>
   async (item: AbstractItem): Promise<void> => {
+    const { TableName: tableName } = await tableDescription;
+
+    if (tableName == null) {
+      throw new Error();
+    }
+
     try {
       await client.delete({
         TableName: tableName,
